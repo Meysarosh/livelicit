@@ -1,0 +1,42 @@
+'use client';
+import { Bar, Wrap, Brand, Nav, Right, Hello, Btn, Button } from './header.styles';
+import Link from 'next/link';
+import { signOut } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
+
+type HeaderUser = { id: string; name: string; role: string } | null;
+
+export default function Header({ user }: { user: HeaderUser }) {
+  const pathname = usePathname();
+  const onAuthPage = pathname?.startsWith('/auth');
+
+  return (
+    <Bar>
+      <Wrap>
+        <Brand>
+          <Link href='/auctions'>🧭 Auction App</Link>
+        </Brand>
+
+        <Nav aria-label='Primary'>
+          <Link href='/auctions'>Auctions</Link>
+          <Link href='/auction/create'>Create</Link>
+        </Nav>
+
+        <Right>
+          {user ? (
+            <>
+              <Hello>Hello, {user.name}</Hello>
+              <Btn href='/account'>Profile</Btn>
+              <Button onClick={() => signOut()}>Sign out</Button>
+            </>
+          ) : onAuthPage ? null : (
+            <>
+              <Btn href='/auth/login'>Sign in</Btn>
+              <Btn href='/auth/register'>Sign up</Btn>
+            </>
+          )}
+        </Right>
+      </Wrap>
+    </Bar>
+  );
+}
