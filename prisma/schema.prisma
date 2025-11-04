@@ -24,6 +24,8 @@ model User {
   items     Item[]
   auctions  Auction[] @relation("AuctionOwner")
   tokenVersion  Int    @default(0)
+  stopRequests        StopRequest[] @relation("StopRequestSeller")
+  decidedStopRequests StopRequest[] @relation("StopRequestAdmin")
 }
 
 model Item {
@@ -46,12 +48,20 @@ model Auction {
   minIncrement  Decimal  @db.Decimal(12,2)
   currentPrice  Decimal  @db.Decimal(12,2)
   status        AuctionStatus @default(SCHEDULED)
+  endReason     AuctionEndReason?
+  reservePrice  Decimal? @db.Decimal(12,2)
+  softCloseSec  Int      @default(120) // anti-sniping window
   bids          Bid[]
   owner         User     @relation("AuctionOwner", fields: [ownerId], references: [id])
   ownerId       Int
   winnerBidId   Int?
+  finalPrice    Decimal? @db.Decimal(12,2) // optional cache of winning amount
+
+  stopRequests  StopRequest[]
+
   @@index([status, endsAt])
   @@index([itemId, status])
+  // keep unique active per item (partial index in migration SQL)
 }
 
 model Bid {
@@ -64,15 +74,43 @@ model Bid {
   createdAt DateTime @default(now())
   @@index([auctionId, createdAt])
 }
+model StopRequest {
+  id          Int               @id @default(autoincrement())
+  auction     Auction           @relation(fields: [auctionId], references: [id])
+  auctionId   Int
+  seller      User              @relation("StopRequestSeller", fields: [sellerId], references: [id])
+  sellerId    Int
+  reason      String            @db.Text
+  status      StopRequestStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
+  decidedAt   DateTime?
+  decidedById Int?
+  decidedBy   User?             @relation("StopRequestAdmin", fields: [decidedById], references: [id])
+}
 
 enum Role {
   ADMIN
   USER
 }
 
-enum AuctionStatus {
-  SCHEDULED
-  ACTIVE
-  CLOSED
+enum AuctionStatus { 
+  SCHEDULED 
+  ACTIVE 
+  ENDED 
+  CANCELED 
+  }
+enum AuctionEndReason {
+  NORMAL_WINNER
+  NO_BIDS
+  RESERVE_NOT_MET
+  CANCELED_SELLER_BEFORE_START
+  CANCELED_ADMIN
+  FORCE_CLOSED_ADMIN
+  BUY_NOW
 }
+enum StopRequestStatus { 
+  PENDING 
+  APPROVED 
+  REJECTED 
+  }
 
