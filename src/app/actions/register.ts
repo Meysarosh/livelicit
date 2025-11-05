@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import * as z from 'zod';
 import { RegisterFormSchema, type RegisterFormState } from '@/lib/forms/validation';
 import { signIn } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { isNextRedirectError } from '@/lib/utils/isNextRedirectError';
 
 export async function register(prev: RegisterFormState, formData: FormData): Promise<RegisterFormState> {
   const raw = {
@@ -48,7 +48,11 @@ export async function register(prev: RegisterFormState, formData: FormData): Pro
   await prisma.user.create({
     data: { name, email, password: hash, role: 'USER' },
   });
-  //TODO error handling
-  await signIn('credentials', { email, password, redirect: false });
-  redirect('/auctions');
+  try {
+    await signIn('credentials', { email, password, redirectTo: '/auctions' });
+  } catch (err) {
+    if (isNextRedirectError(err)) throw err;
+
+    return { message: 'Server error. Please try again.', values: { email } };
+  }
 }

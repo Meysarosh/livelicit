@@ -1,12 +1,9 @@
 'use server';
 
-import { prisma } from '@/lib/db';
-import bcrypt from 'bcrypt';
-import * as z from 'zod';
 import { LoginFormSchema, type LoginFormState } from '@/lib/forms/validation';
 import { signIn } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
+import { isNextRedirectError } from '@/lib/utils/isNextRedirectError';
 
 export async function login(prev: LoginFormState, formData: FormData): Promise<LoginFormState> {
   const raw = {
@@ -25,11 +22,9 @@ export async function login(prev: LoginFormState, formData: FormData): Promise<L
   const { email, password } = parsed.data;
 
   try {
-    await signIn('credentials', { email, password });
-    //TODO: redirect to previous page
-    redirect('/auctions');
+    await signIn('credentials', { email, password, redirectTo: '/auctions' });
   } catch (err) {
-    console.log('Sign-in error:', err);
+    if (isNextRedirectError(err)) throw err;
     if (err instanceof AuthError && err.type === 'CredentialsSignin') {
       return { message: 'Wrong email or password.', values: { email } };
     }
