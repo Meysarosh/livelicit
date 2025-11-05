@@ -1,6 +1,8 @@
+'use client';
+
 import { login } from '@/app/actions/login';
 
-import { Title, Btn, Form, FormField, Label, Input, Summary, SummaryTitle, SummaryList, Note, SCLink } from './form.styles';
+import { Title, Btn, Form, FormField, Label, Input, Summary, Note, SCLink } from './form.styles';
 import { useActionState, useEffect, useRef } from 'react';
 
 function fieldIds(base: string) {
