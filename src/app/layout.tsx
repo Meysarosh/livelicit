@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import StyledComponentsRegistry from './sc-registry';
 import Providers from './providers';
-import { auth } from '@/lib/auth';
+import { auth } from '@/auth';
 import Header from '@/components/layout/Header/Header';
 
 export const metadata: Metadata = {
