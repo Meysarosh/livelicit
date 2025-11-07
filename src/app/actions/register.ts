@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 import bcrypt from 'bcrypt';
 import * as z from 'zod';
 import { RegisterFormSchema, type RegisterFormState } from '@/lib/forms/validation';
-import { signIn } from '@/lib/auth';
+import { signIn } from '@/auth';
 import { isNextRedirectError } from '@/lib/utils/isNextRedirectError';
 
 export async function register(prev: RegisterFormState, formData: FormData): Promise<RegisterFormState> {

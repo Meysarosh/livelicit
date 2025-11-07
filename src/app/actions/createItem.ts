@@ -1,6 +1,6 @@
 'use server';
 
-import { auth } from '@/lib/auth';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/db';
 import { CreateItemSchema, type CreateItemState } from '@/lib/forms/validation';
 import { z } from 'zod';
