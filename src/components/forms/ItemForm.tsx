@@ -1,10 +1,23 @@
 'use client';
 
 import { useActionState, useEffect, useRef } from 'react';
-import { createItem } from '@/app/actions/createItem';
-import { type CreateItemState } from '@/lib/forms/validation';
+import { type ItemFormState } from '@/lib/forms/validation';
 import { buildErrorSummary, type SummaryItem } from '@/lib/forms/errorSummary';
-import { Btn, ErrorText, Form, FormField, Input, Label, Note, RequiredMark, Summary, SummaryList, SummaryTitle, Textarea, Title } from './form.styles';
+import {
+  Btn,
+  ErrorText,
+  Form,
+  FormField,
+  Input,
+  Label,
+  Note,
+  RequiredMark,
+  Summary,
+  SummaryList,
+  SummaryTitle,
+  Textarea,
+  Title,
+} from './form.styles';
 
 /* ---- id helpers ---- */
 function fieldIds(base: string) {
@@ -15,9 +28,19 @@ function describedByIds(opts: { error?: string; hint?: string }) {
   return ids.length ? ids : undefined;
 }
 
-/* ---- component ---- */
-export default function CreateItemForm() {
-  const [state, action, pending] = useActionState<CreateItemState, FormData>(createItem, undefined);
+type DefaultValues = { title?: string; description?: string; images?: string[] };
+type HiddenFields = Record<string, string | number>;
+
+type ItemFormProps = {
+  heading: string;
+  submitLabel: string;
+  defaultValues?: DefaultValues;
+  hidden?: HiddenFields;
+  formAction: (prev: ItemFormState, formData: FormData) => Promise<ItemFormState>;
+};
+
+export default function ItemForm({ heading, submitLabel, defaultValues, hidden, formAction }: ItemFormProps) {
+  const [state, action, pending] = useActionState<ItemFormState, FormData>(formAction, undefined);
 
   type ItemField = 'title' | 'description' | 'images';
   const errors: SummaryItem[] = buildErrorSummary<ItemField>({
@@ -43,7 +66,7 @@ export default function CreateItemForm() {
 
   return (
     <>
-      <Title>Create item</Title>
+      <Title>{heading}</Title>
 
       {errors.length > 0 && (
         <Summary ref={summaryRef} tabIndex={-1} role='alert' aria-labelledby='error-summary-title'>
@@ -61,6 +84,9 @@ export default function CreateItemForm() {
       )}
 
       <Form action={action}>
+        {/* hidden fields: e.g. id for edit */}
+        {hidden && Object.entries(hidden).map(([k, v]) => <input key={k} type='hidden' name={k} value={String(v)} />)}
+
         {/* Title */}
         <FormField>
           <Label id={titleIds.labelId} htmlFor={titleIds.inputId}>
@@ -71,7 +97,7 @@ export default function CreateItemForm() {
             name='title'
             required
             placeholder='e.g., Vintage watch'
-            defaultValue={state?.values?.title ?? ''}
+            defaultValue={state?.values?.title ?? defaultValues?.title ?? ''}
             aria-labelledby={titleIds.labelId}
             aria-invalid={!!state?.errors?.title}
             aria-describedby={describedByIds({
@@ -91,14 +117,16 @@ export default function CreateItemForm() {
             name='description'
             required
             placeholder='Describe the item condition, brand, size, etc.'
-            defaultValue={state?.values?.description ?? ''}
+            defaultValue={state?.values?.description ?? defaultValues?.description ?? ''}
             aria-labelledby={descIds.labelId}
             aria-invalid={!!state?.errors?.description}
             aria-describedby={describedByIds({
               error: state?.errors?.description ? descIds.errorId : undefined,
             })}
           />
-          {state?.errors?.description && <ErrorText id={descIds.errorId}>Error: {state?.errors?.description[0]}</ErrorText>}
+          {state?.errors?.description && (
+            <ErrorText id={descIds.errorId}>Error: {state?.errors?.description[0]}</ErrorText>
+          )}
         </FormField>
 
         {/* Images (optional) */}
@@ -110,7 +138,7 @@ export default function CreateItemForm() {
             id={imagesIds.inputId}
             name='images'
             placeholder='https://example.com/image1.jpg&#10;https://example.com/image2.jpg'
-            defaultValue={state?.values?.images ?? ''}
+            defaultValue={state?.values?.images ?? defaultValues?.images ?? ''}
             aria-labelledby={imagesIds.labelId}
             aria-describedby={describedByIds({
               hint: imagesHintId,
@@ -122,7 +150,7 @@ export default function CreateItemForm() {
         </FormField>
 
         <Btn type='submit' disabled={pending}>
-          {pending ? 'Creating…' : 'Create item'}
+          {pending ? `${submitLabel}…` : submitLabel}
         </Btn>
       </Form>
     </>

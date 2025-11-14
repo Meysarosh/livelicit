@@ -1,8 +1,8 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 
-import { Main } from './page.styles';
-import CreateItemForm from '@/components/forms/CreateItemForm';
+import ItemForm from '@/components/forms/ItemForm';
+import { createItem } from '@/app/actions/itemsActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,9 +11,5 @@ export default async function CreateItemPage() {
   if (!session?.user?.id) {
     redirect('/auth/login?callbackUrl=/items/create');
   }
-  return (
-    <Main>
-      <CreateItemForm />
-    </Main>
-  );
+  return <ItemForm heading='Create item' submitLabel='Create item' defaultValues={{}} formAction={createItem} />;
 }
