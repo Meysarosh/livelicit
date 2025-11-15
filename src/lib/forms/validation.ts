@@ -51,7 +51,11 @@ export const CreateItemSchema = z.object({
   images: z.string().optional(),
 });
 
-export type CreateItemState =
+export const UpdateItemSchema = CreateItemSchema.extend({
+  id: z.coerce.number().int().positive(),
+});
+
+export type ItemFormState =
   | {
       errors?: {
         title?: string[];

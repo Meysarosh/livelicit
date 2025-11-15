@@ -101,7 +101,10 @@ export default async function ItemsPage({
               <Thumb>{item.images?.length ? <img src={item.images[0]} alt='' /> : <span>No image</span>}</Thumb>
 
               <div>
-                <ItemTitle>{item.title}</ItemTitle>
+                <ItemTitle>
+                  {item.title}
+                  <Btn href={`/items/${item.id}`}>View details</Btn>
+                </ItemTitle>
                 <Meta>
                   ID: {item.id} • <Badge $tone={derivedStatus}>{derivedStatus}</Badge>
                   {lastAuction ? (
